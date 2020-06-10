@@ -113,13 +113,30 @@ HAVING COUNT(i.item_num)>0
 
 
 --------------------------------------------
+
 --Crear una consulta que devuelva los 5 primeros estados y el 
---tipo de producto (description) mas comprado en ese estado (state) segun la cantidad vendida del tipo de producto.
+--tipo de producto (description) mas comprado en ese estado (state) 
+--segun la cantidad vendida del tipo de producto.
 --Ordenarlo por la cantidad vendida en forma descendente.
 --Nota: No se permite utilizar funciones, ni tablas temporales
 
-
-
+SELECT s.state, prt.description, sum(i.quantity)  FROM
+customer c RIGHT JOIN state s ON c.state= s.state
+JOIN orders o ON c.customer_num=o.customer_num
+JOIN items i ON i.order_num=o.order_num
+JOIN product_types prt ON prt.stock_num=i.stock_num
+WHERE prt.stock_num = (SELECT TOP 1 prt2.stock_num FROM
+					items i2 JOIN product_types prt2
+					ON i2.stock_num= prt2.stock_num
+					JOIN orders o2
+					ON i2.order_num= o2.order_num
+					JOIN customer c2
+					ON c2.customer_num= o2.customer_num
+					WHERE c2.state= s.state
+					group by c2.state,prt2.stock_num
+					order by sum(i2.quantity)  desc)
+GROUP BY s.state, prt.description	,prt.stock_num	
+ORDER BY sum(i.quantity) desc
 
 
 
